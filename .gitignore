@@ -1,0 +1,26 @@
+# Node / frontend
+node_modules/
+npm-debug.log*
+yarn.lock
+pnpm-lock.yaml
+
+# PHP / Laravel
+vendor/
+storage/
+bootstrap/cache/
+
+# Python
+__pycache__/
+*.pyc
+
+# Docker / среды
+.env
+.env.*
+!.env.example
+docker-data/
+*.log
+
+# IDE
+.idea/
+.vscode/
+*.iml
