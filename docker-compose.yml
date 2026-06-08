@@ -1,0 +1,56 @@
+services:
+  nginx:
+    image: nginx:1.25-alpine
+    container_name: cf_nginx
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
+      - ./laravel:/var/www/laravel
+      - ./fastapi:/app
+    depends_on:
+      - laravel
+      - fastapi
+
+  laravel:
+    build:
+      context: ./laravel
+      dockerfile: Dockerfile
+    container_name: cf_laravel
+    volumes:
+      - ./laravel:/var/www/laravel
+    environment:
+      - DB_HOST=mysql
+      - REDIS_HOST=redis
+
+  fastapi:
+    build:
+      context: ./fastapi
+      dockerfile: Dockerfile
+    container_name: cf_fastapi
+    volumes:
+      - ./fastapi:/app
+    environment:
+      - DB_HOST=mysql
+      - REDIS_HOST=redis
+
+  mysql:
+    image: mysql:8.0
+    container_name: cf_mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: creative_forum
+      MYSQL_USER: cf_user
+      MYSQL_PASSWORD: cf_pass
+    volumes:
+      - mysql_data:/var/lib/mysql
+
+  redis:
+    image: redis:7-alpine
+    container_name: cf_redis
+    volumes:
+      - redis_data:/data
+
+volumes:
+  mysql_data:
+  redis_data:
