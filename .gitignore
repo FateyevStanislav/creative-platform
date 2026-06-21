@@ -6,12 +6,19 @@ pnpm-lock.yaml
 
 # PHP / Laravel
 vendor/
-storage/
-bootstrap/cache/
+storage/*.key
+storage/app/public/*
+storage/framework/cache/*
+storage/framework/sessions/*
+storage/framework/views/*
+storage/logs/*
+bootstrap/cache/*
+!bootstrap/cache/.gitkeep
 
 # Python
 __pycache__/
 *.pyc
+*.pyo
 
 # Docker / среды
 .env
