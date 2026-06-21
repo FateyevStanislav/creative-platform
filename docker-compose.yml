@@ -1,56 +1,89 @@
 services:
   nginx:
-    image: nginx:1.25-alpine
-    container_name: cf_nginx
+    image: nginx:alpine
     ports:
       - "80:80"
+      - "443:443"
     volumes:
-      - ./nginx/nginx.conf:/etc/nginx/conf.d/default.conf
-      - ./laravel:/var/www/laravel
-      - ./fastapi:/app
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/sites:/etc/nginx/sites-enabled:ro
+      - ./nginx/certs:/etc/nginx/certs:ro
+      - ./laravel/public:/var/www/html/public:ro
     depends_on:
       - laravel
       - fastapi
+    networks:
+      - app-network
 
   laravel:
     build:
       context: ./laravel
       dockerfile: Dockerfile
-    container_name: cf_laravel
     volumes:
-      - ./laravel:/var/www/laravel
+      - ./laravel:/var/www/html
     environment:
+      - APP_ENV=${APP_ENV:-local}
+      - APP_KEY=${APP_KEY}
       - DB_HOST=mysql
+      - DB_DATABASE=${DB_DATABASE:-creative}
+      - DB_USERNAME=${DB_USERNAME:-creative}
+      - DB_PASSWORD=${DB_PASSWORD:-secret}
       - REDIS_HOST=redis
+      - GITHUB_CLIENT_ID=${GITHUB_CLIENT_ID}
+      - GITHUB_CLIENT_SECRET=${GITHUB_CLIENT_SECRET}
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - app-network
 
   fastapi:
     build:
       context: ./fastapi
       dockerfile: Dockerfile
-    container_name: cf_fastapi
     volumes:
       - ./fastapi:/app
     environment:
       - DB_HOST=mysql
+      - DB_DATABASE=${DB_DATABASE:-creative}
+      - DB_USERNAME=${DB_USERNAME:-creative}
+      - DB_PASSWORD=${DB_PASSWORD:-secret}
       - REDIS_HOST=redis
+    depends_on:
+      mysql:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    networks:
+      - app-network
 
   mysql:
     image: mysql:8.0
-    container_name: cf_mysql
     environment:
-      MYSQL_ROOT_PASSWORD: root
-      MYSQL_DATABASE: creative_forum
-      MYSQL_USER: cf_user
-      MYSQL_PASSWORD: cf_pass
+      - MYSQL_DATABASE=${DB_DATABASE:-creative}
+      - MYSQL_USER=${DB_USERNAME:-creative}
+      - MYSQL_PASSWORD=${DB_PASSWORD:-secret}
+      - MYSQL_ROOT_PASSWORD=${DB_ROOT_PASSWORD:-rootsecret}
     volumes:
-      - mysql_data:/var/lib/mysql
+      - mysql-data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - app-network
 
   redis:
     image: redis:7-alpine
-    container_name: cf_redis
-    volumes:
-      - redis_data:/data
+    networks:
+      - app-network
+
+networks:
+  app-network:
+    driver: bridge
 
 volumes:
-  mysql_data:
-  redis_data:
+  mysql-data:
