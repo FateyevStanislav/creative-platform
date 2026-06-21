@@ -1,36 +1,73 @@
 <!DOCTYPE html>
-<html lang="{{ str_replace('_', '-', app()->getLocale()) }}">
-    <head>
-        <meta charset="utf-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <meta name="csrf-token" content="{{ csrf_token() }}">
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>@yield('title', 'Creative Platform')</title>
+    <link rel="stylesheet" href="/css/app.css">
+</head>
+<body>
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+<nav class="navbar">
+    <div class="container">
+        <a href="/" class="navbar-brand">Creative Platform</a>
+        <ul class="navbar-links">
+            @auth
+                <li><a href="/feed/subscriptions">Подписки</a></li>
+                @if(Auth::user()->isPublisher())
+                    <li><a href="/posts/create">Новый пост</a></li>
+                @endif
+                @if(Auth::user()->isPublisher())
+                    <li><a href="/my/posts">Мои посты</a></li>
+                @endif
+                @if(Auth::user()->isAdmin())
+                    <li><a href="/admin/reports">Жалобы</a></li>
+                @endif
+                <li>
+                    <form method="POST" action="/logout" style="display:inline">
+                        @csrf
+                        <button type="submit" class="btn btn-sm btn-secondary">Выйти</button>
+                    </form>
+                </li>
+            @else
+                <li><a href="/login">Войти</a></li>
+                <li><a href="/register" class="btn btn-sm btn-primary">Регистрация</a></li>
+            @endauth
+        </ul>
+    </div>
+</nav>
 
-        <!-- Fonts -->
-        <link rel="preconnect" href="https://fonts.bunny.net">
-        <link href="https://fonts.bunny.net/css?family=figtree:400,500,600&display=swap" rel="stylesheet" />
+<div class="container" style="padding-top: 2rem; padding-bottom: 3rem;">
+    @if(session('success'))
+        <div class="alert alert-success">{{ session('success') }}</div>
+    @endif
 
-        <!-- Scripts -->
-        @vite(['resources/css/app.css', 'resources/js/app.js'])
-    </head>
-    <body class="font-sans antialiased">
-        <div class="min-h-screen bg-gray-100">
-            @include('layouts.navigation')
+    @yield('content')
+</div>
 
-            <!-- Page Heading -->
-            @isset($header)
-                <header class="bg-white shadow">
-                    <div class="max-w-7xl mx-auto py-6 px-4 sm:px-6 lg:px-8">
-                        {{ $header }}
-                    </div>
-                </header>
-            @endisset
+@auth
+<div id="ws-notifications"></div>
+<script>
+    const userId = {{ Auth::id() }};
+    const ws = new WebSocket(`wss://api.creative.localhost/ws?user_id=${userId}`);
 
-            <!-- Page Content -->
-            <main>
-                {{ $slot }}
-            </main>
-        </div>
-    </body>
+    ws.onmessage = (event) => {
+        const data = JSON.parse(event.data);
+        if (data.event === 'post.created') {
+            showNotification(`Новая публикация: ${data.payload.title ?? 'без заголовка'}`);
+        }
+    };
+
+    function showNotification(text) {
+        const container = document.getElementById('ws-notifications');
+        const el = document.createElement('div');
+        el.className = 'ws-notification';
+        el.textContent = text;
+        container.appendChild(el);
+        setTimeout(() => el.remove(), 5000);
+    }
+</script>
+@endauth
+
+</body>
 </html>

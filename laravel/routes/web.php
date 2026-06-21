@@ -11,6 +11,7 @@ use Illuminate\Support\Facades\Route;
 
 Route::get('/', [PostController::class, 'index'])->name('home');
 Route::get('/categories/{slug}', [PostController::class, 'byCategory'])->name('categories.show');
+Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create')->middleware('auth');
 Route::get('/posts/{id}', [PostController::class, 'show'])->name('posts.show');
 
 Route::middleware('guest')->group(function () {
@@ -24,10 +25,8 @@ Route::middleware('guest')->group(function () {
 
 Route::middleware('auth')->group(function () {
     Route::post('/logout', [AuthController::class, 'logout'])->name('logout');
-
     Route::get('/feed/subscriptions', [PostController::class, 'subscriptionFeed'])->name('feed.subscriptions');
 
-    Route::get('/posts/create', [PostController::class, 'create'])->name('posts.create');
     Route::post('/posts', [PostController::class, 'store'])->name('posts.store');
     Route::get('/posts/{id}/edit', [PostController::class, 'edit'])->name('posts.edit');
     Route::put('/posts/{id}', [PostController::class, 'update'])->name('posts.update');
@@ -59,4 +58,6 @@ Route::middleware('auth')->group(function () {
         Route::patch('/users/{id}/block', [Admin\UserController::class, 'block'])->name('users.block');
         Route::patch('/users/{id}/unblock', [Admin\UserController::class, 'unblock'])->name('users.unblock');
     });
+
+    Route::get('/my/posts', [PostController::class, 'myPosts'])->name('posts.my');
 });

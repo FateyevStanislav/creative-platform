@@ -182,8 +182,21 @@ class PostController extends Controller
                 ->where('publisher_id', $id)->exists();
         }
 
+        $subscriberCount = \App\Models\Subscription::where('publisher_id', $id)->count();
+
         $categories = Category::where('is_active', true)->get();
 
-        return view('publishers.show', compact('publisher', 'posts', 'isSubscribed', 'categories'));
+        return view('publishers.show', compact('publisher', 'posts', 'isSubscribed', 'categories', 'subscriberCount'));
+    }
+
+    public function myPosts()
+    {
+        $posts = Post::with(['category'])
+            ->where('user_id', Auth::id())
+            ->whereIn('status', ['published', 'draft'])
+            ->latest('published_at')
+            ->paginate(10);
+
+        return view('posts.my', compact('posts'));
     }
 }
