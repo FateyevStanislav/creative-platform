@@ -9,10 +9,14 @@ return new class extends Migration {
     {
         Schema::create('subscriptions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('subscriber_id')->constrained('users')->index();
-            $table->foreignId('publisher_id')->constrained('users')->index();
+            $table->unsignedBigInteger('subscriber_id');
+            $table->unsignedBigInteger('publisher_id');
             $table->timestamps();
 
+            $table->foreign('subscriber_id', 'subs_subscriber_id_fk')->references('id')->on('users');
+            $table->foreign('publisher_id', 'subs_publisher_id_fk')->references('id')->on('users');
+            $table->index('subscriber_id');
+            $table->index('publisher_id');
             $table->unique(['subscriber_id', 'publisher_id']);
         });
     }

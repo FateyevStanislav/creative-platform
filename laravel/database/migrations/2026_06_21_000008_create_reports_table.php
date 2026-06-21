@@ -9,15 +9,19 @@ return new class extends Migration {
     {
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('user_id')->constrained('users')->index();
+            $table->unsignedBigInteger('user_id');
             $table->enum('target_type', ['post', 'comment', 'user']);
             $table->unsignedBigInteger('target_id');
             $table->enum('reason', ['spam', 'abuse', 'plagiarism', 'other']);
             $table->text('message')->nullable();
             $table->enum('status', ['pending', 'reviewed', 'rejected', 'accepted'])->default('pending');
-            $table->foreignId('reviewed_by')->nullable()->constrained('users')->nullOnDelete();
+            $table->unsignedBigInteger('reviewed_by')->nullable();
             $table->timestamp('reviewed_at')->nullable();
             $table->timestamps();
+
+            $table->foreign('user_id', 'reports_user_id_fk')->references('id')->on('users');
+            $table->foreign('reviewed_by', 'reports_reviewed_by_fk')->references('id')->on('users')->nullOnDelete();
+            $table->index('user_id');
         });
     }
 

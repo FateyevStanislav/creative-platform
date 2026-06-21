@@ -9,12 +9,18 @@ return new class extends Migration {
     {
         Schema::create('comments', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('post_id')->constrained('posts')->index();
-            $table->foreignId('user_id')->constrained('users')->index();
-            $table->foreignId('parent_id')->nullable()->constrained('comments')->nullOnDelete();
+            $table->unsignedBigInteger('post_id');
+            $table->unsignedBigInteger('user_id');
+            $table->unsignedBigInteger('parent_id')->nullable();
             $table->text('content');
             $table->boolean('is_deleted')->default(false);
             $table->timestamps();
+
+            $table->foreign('post_id', 'comments_post_id_fk')->references('id')->on('posts');
+            $table->foreign('user_id', 'comments_user_id_fk')->references('id')->on('users');
+            $table->foreign('parent_id', 'comments_parent_id_fk')->references('id')->on('comments')->nullOnDelete();
+            $table->index('post_id');
+            $table->index('user_id');
         });
     }
 

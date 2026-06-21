@@ -9,11 +9,15 @@ return new class extends Migration {
     {
         Schema::create('reactions', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('post_id')->constrained('posts')->index();
-            $table->foreignId('user_id')->constrained('users')->index();
+            $table->unsignedBigInteger('post_id');
+            $table->unsignedBigInteger('user_id');
             $table->enum('type', ['like', 'dislike']);
             $table->timestamps();
 
+            $table->foreign('post_id', 'reactions_post_id_fk')->references('id')->on('posts');
+            $table->foreign('user_id', 'reactions_user_id_fk')->references('id')->on('users');
+            $table->index('post_id');
+            $table->index('user_id');
             $table->unique(['user_id', 'post_id']);
         });
     }
