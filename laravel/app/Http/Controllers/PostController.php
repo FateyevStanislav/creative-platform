@@ -76,20 +76,19 @@ class PostController extends Controller
             'excerpt' => 'nullable|string|max:500',
         ]);
 
-        $post = Post::create([
-            ...$data,
-            'user_id' => Auth::id(),
-            'status' => 'published',
-            'published_at' => now(),
-        ]);
+        $subscriber_ids = \App\Models\Subscription::where('publisher_id', Auth::id())
+            ->pluck('subscriber_id')
+            ->toArray();
 
         Redis::publish('post.created', json_encode([
+            'event' => 'post.created',
             'post_id' => $post->id,
             'author_id' => $post->user_id,
             'category_id' => $post->category_id,
             'title' => $post->title,
             'content_type' => $post->content_type,
             'published_at' => $post->published_at->toISOString(),
+            'subscriber_ids' => $subscriber_ids,
         ]));
 
         return redirect()->route('posts.show', $post->id);
