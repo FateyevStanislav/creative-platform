@@ -12,14 +12,14 @@ if [ ! -f laravel/.env ]; then
         cp laravel/.env.example laravel/.env
         echo "laravel/.env создан из laravel/.env.example"
     else
-        echo "Нет laravel/.env и laravel/.env.example — создай хотя бы example"
+        echo "Нет laravel/.env и laravel/.env.example"
         exit 1
     fi
 else
     echo "laravel/.env уже существует"
 fi
 
-echo "[3/13] Генерация SSL сертификатов..."
+echo "[3/13] Генерация SSL сертификатов"
 mkdir -p nginx/certs
 
 if [ ! -f nginx/certs/creative.crt ]; then
@@ -56,7 +56,7 @@ else
     echo "SSL сертификаты уже существуют"
 fi
 
-echo "[4/13] Настройка /etc/hosts..."
+echo "[4/13] Настройка /etc/hosts"
 if ! grep -q "creative.localhost" /etc/hosts; then
     echo "127.0.0.1 creative.localhost api.creative.localhost" | sudo tee -a /etc/hosts > /dev/null
     echo "Домены добавлены в /etc/hosts"
@@ -64,25 +64,25 @@ else
     echo "Домены уже в /etc/hosts"
 fi
 
-echo "[5/13] Запуск Docker контейнеров..."
+echo "[5/13] Запуск Docker контейнеров"
 docker compose up -d --build
 
-echo "[6/13] Ожидание запуска MySQL..."
+echo "[6/13] Ожидание запуска MySQL"
 sleep 10
 
-echo "[7/13] Установка зависимостей Laravel..."
+echo "[7/13] Установка зависимостей Laravel"
 docker compose exec -T laravel composer install --no-interaction --prefer-dist
 echo "Зависимости установлены"
 
-echo "[8/13] Генерация APP_KEY..."
+echo "[8/13] Генерация APP_KEY"
 docker compose exec -T laravel php artisan key:generate --force
 echo "APP_KEY сгенерирован"
 
-echo "[9/13] Очистка кэша конфигурации Laravel..."
+echo "[9/13] Очистка кэша конфигурации Laravel"
 docker compose exec -T laravel php artisan optimize:clear
 echo "Кэш очищен"
 
-echo "[10/13] Выполнение миграций и сидеров (чистой базой)..."
+echo "[10/13] Выполнение миграций и сидеров (чистой базой)"
 docker compose exec -T laravel php artisan migrate:fresh --seed --force
 
 echo "[11/13] Настройка прав доступа..."
@@ -100,7 +100,7 @@ docker compose exec -T laravel bash -c '
     chmod -R 775 /var/www/html/bootstrap/cache
 '
 
-echo "[12/13] Очистка кэша маршрутов и представлений..."
+echo "[12/13] Очистка кэша маршрутов и представлений"
 docker compose exec -T laravel php artisan config:clear
 docker compose exec -T laravel php artisan route:clear
 docker compose exec -T laravel php artisan view:clear
