@@ -6,6 +6,8 @@ from redis.asyncio import Redis
 from .api.posts import router as posts_router
 from .websocket.manager import manager
 from .websocket.redis_listener import redis_listener
+from .db.database import get_db
+from sqlalchemy import select
 
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
 
@@ -30,6 +32,12 @@ async def health():
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, user_id: int = Query(...)):
+    async for db in get_db():
+        user = await db.scalar(select(User).where(User.id == user_id))
+        if not user:
+            await websocket.close(code=4001, reason="User not found")
+            return
+    
     await manager.connect(websocket, user_id)
     try:
         while True:

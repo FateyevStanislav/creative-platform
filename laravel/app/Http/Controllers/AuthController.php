@@ -49,15 +49,16 @@ class AuthController extends Controller
             'name' => 'required|string|max:255',
             'email' => 'required|email|unique:users',
             'password' => 'required|min:8|confirmed',
+            'role' => 'required|in:reader,publisher',  
         ]);
 
-        $role = Role::where('name', 'reader')->first();
+        $role = Role::where('name', $data['role'])->first();
 
         $user = User::create([
             'name' => $data['name'],
             'email' => $data['email'],
             'password' => Hash::make($data['password']),
-            'role_id' => $role->id,
+            'role_id' => $role->id,  
         ]);
 
         Auth::login($user);
@@ -87,6 +88,8 @@ class AuthController extends Controller
             $user = User::where('email', $githubUser->getEmail())->first();
         }
 
+        $isNewUser = false;
+
         if (!$user) {
             $role = Role::where('name', 'reader')->first();
             $user = User::create([
@@ -95,6 +98,7 @@ class AuthController extends Controller
                 'github_id' => $githubUser->getId(),
                 'role_id' => $role->id,
             ]);
+            $isNewUser = true;
         } else {
             $user->update(['github_id' => $githubUser->getId()]);
         }
@@ -104,6 +108,43 @@ class AuthController extends Controller
         }
 
         Auth::login($user);
+        
+        if ($isNewUser) {
+            return redirect()->route('role.choose');
+        }
+        
         return redirect('/');
+    }
+
+    public function chooseRoleForm()
+    {
+        $user = Auth::user();
+        if ($user->role->name !== 'reader') {
+            return redirect('/');
+        }
+        
+        if ($user->posts()->count() > 0 || $user->comments()->count() > 0) {
+            return redirect('/');
+        }
+        
+        return view('auth.choose-role');
+    }
+
+    public function chooseRole(Request $request)
+    {
+        $data = $request->validate([
+            'role' => 'required|in:reader,publisher',
+        ]);
+        
+        $user = Auth::user();
+        
+        if ($user->role->name !== 'reader') {
+            return redirect('/')->withErrors(['role' => 'Роль уже выбрана.']);
+        }
+        
+        $role = Role::where('name', $data['role'])->first();
+        $user->update(['role_id' => $role->id]);
+        
+        return redirect('/')->with('success', 'Роль успешно выбрана!');
     }
 }

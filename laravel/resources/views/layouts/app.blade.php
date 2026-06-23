@@ -23,6 +23,7 @@
                 @if(Auth::user()->isAdmin())
                     <li><a href="/admin/reports">Жалобы</a></li>
                 @endif
+                <li><a href="/favorites">Избранное</a></li>
                 <li>
                     <form method="POST" action="/logout" style="display:inline">
                         @csrf
@@ -49,14 +50,50 @@
 <div id="ws-notifications"></div>
 <script>
     const userId = {{ Auth::id() }};
-    const ws = new WebSocket(`wss://api.creative.localhost/ws?user_id=${userId}`);
+    let ws;
+    let reconnectTimeout;
 
-    ws.onmessage = (event) => {
-        const data = JSON.parse(event.data);
-        if (data.event === 'post.created') {
-            showNotification(`Новая публикация: ${data.payload.title ?? 'без заголовка'}`);
-        }
-    };
+    function connectWebSocket() {
+        ws = new WebSocket(`wss://api.creative.localhost/ws?user_id=${userId}`);
+        
+        ws.onopen = () => {
+            console.log('WebSocket connected');
+            clearTimeout(reconnectTimeout);
+        };
+        
+        ws.onclose = () => {
+            console.log('WebSocket disconnected, reconnecting in 5 seconds...');
+            reconnectTimeout = setTimeout(connectWebSocket, 5000);
+        };
+        
+        ws.onerror = (error) => {
+            console.error('WebSocket error:', error);
+            ws.close();
+        };
+        
+        ws.onmessage = (event) => {
+            try {
+                const data = JSON.parse(event.data);
+                
+                switch(data.event) {
+                    case 'post.created':
+                        showNotification(`Новая публикация: ${data.title ?? 'без заголовка'}`);
+                        break;
+                    case 'post.updated':
+                        showNotification(`Публикация обновлена: ${data.title ?? 'без заголовка'}`);
+                        break;
+                    case 'post.deleted':
+                        showNotification(`Публикация удалена`);
+                        break;
+                    case 'comment.created':
+                        showNotification(`Новый комментарий`);
+                        break;
+                }
+            } catch (error) {
+                console.error('Error parsing WebSocket message:', error);
+            }
+        };
+    }
 
     function showNotification(text) {
         const container = document.getElementById('ws-notifications');
@@ -66,6 +103,8 @@
         container.appendChild(el);
         setTimeout(() => el.remove(), 5000);
     }
+
+    connectWebSocket();
 </script>
 @endauth
 

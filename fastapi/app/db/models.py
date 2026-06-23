@@ -42,6 +42,8 @@ class Post(Base):
     category = relationship("Category")
     reactions = relationship("Reaction", back_populates="post")
     comments = relationship("Comment", back_populates="post")
+    media_path = Column(String(255), nullable=True)
+    updated_at = Column(DateTime, nullable=True)    
 
 class Comment(Base):
     __tablename__ = "comments"
@@ -79,3 +81,7 @@ class Report(Base):
     reason = Column(String(50))
     status = Column(Enum("pending", "reviewed", "rejected", "accepted"), default="pending")
     created_at = Column(DateTime)
+    message = Column(Text, nullable=True)
+    reviewed_by = Column(Integer, ForeignKey("users.id"), nullable=True)
+    reviewed_at = Column(DateTime, nullable=True)
+    updated_at = Column(DateTime, nullable=True)

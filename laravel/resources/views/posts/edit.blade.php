@@ -42,6 +42,12 @@
                 @endforeach
             </select>
         </div>
+        @if(in_array(old('content_type', 'text'), ['image', 'audio', 'mixed']))
+            <div class="form-group">
+                <label>Медиа файл</label>
+                <input type="file" name="media" class="form-control" accept="image/*,audio/*">
+            </div>
+        @endif
         <div class="form-group">
             <label>Краткое описание</label>
             <textarea name="excerpt" class="form-control" rows="2">{{ old('excerpt', $post->excerpt) }}</textarea>

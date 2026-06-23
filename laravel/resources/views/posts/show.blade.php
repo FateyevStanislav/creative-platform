@@ -16,6 +16,16 @@
         <p style="white-space:pre-line; margin-bottom:1.5rem;">{{ $post->content }}</p>
     @endif
 
+    @if($post->media_path)
+        @if($post->content_type === 'image')
+            <img src="{{ asset('storage/' . $post->media_path) }}" alt="{{ $post->title }}" style="max-width: 100%; margin-bottom: 1.5rem;">
+        @elseif($post->content_type === 'audio')
+            <audio controls style="width: 100%; margin-bottom: 1.5rem;">
+                <source src="{{ asset('storage/' . $post->media_path) }}">
+            </audio>
+        @endif
+    @endif
+
     @auth
         <div class="reactions">
             <form method="POST" action="/posts/{{ $post->id }}/reactions">

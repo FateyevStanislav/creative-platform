@@ -45,6 +45,12 @@
             <label>Краткое описание</label>
             <textarea name="excerpt" class="form-control" rows="2">{{ old('excerpt') }}</textarea>
         </div>
+        @if(in_array(old('content_type', 'text'), ['image', 'audio', 'mixed']))
+            <div class="form-group">
+                <label>Медиа файл</label>
+                <input type="file" name="media" class="form-control" accept="image/*,audio/*">
+            </div>
+        @endif
         <div style="display:flex; gap:0.5rem;">
             <button type="submit" class="btn btn-primary">Опубликовать</button>
             <a href="/" class="btn btn-secondary">Отмена</a>

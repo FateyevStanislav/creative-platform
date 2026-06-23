@@ -25,6 +25,10 @@ class ReportController extends Controller
             'message' => 'nullable|string|max:1000',
         ]);
 
+        if ($data['target_type'] === 'user' && $data['target_id'] === Auth::id()) {
+            return back()->withErrors(['target_id' => 'Нельзя жаловаться на себя.']);
+        }
+
         Report::create([
             ...$data,
             'user_id' => Auth::id(),

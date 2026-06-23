@@ -14,8 +14,8 @@
     @if($report->message)
         <div><strong>Комментарий:</strong> {{ $report->message }}</div>
     @endif
-    @if($report->reviewedBy)
-        <div><strong>Обработал:</strong> {{ $report->reviewedBy->name }} в {{ $report->reviewed_at->format('d.m.Y H:i') }}</div>
+    @if($report->reviewer)
+        <div><strong>Обработал:</strong> {{ $report->reviewer->name }} в {{ $report->reviewed_at->format('d.m.Y H:i') }}</div>
     @endif
 </div>
 

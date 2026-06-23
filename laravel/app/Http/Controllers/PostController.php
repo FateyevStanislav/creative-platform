@@ -5,6 +5,8 @@ namespace App\Http\Controllers;
 use App\Models\Category;
 use App\Models\Post;
 use App\Models\User;
+use App\Models\Reaction;      
+use App\Models\Subscription;  
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Redis;
@@ -76,6 +78,22 @@ class PostController extends Controller
             'excerpt' => 'nullable|string|max:500',
         ]);
 
+        if ($request->hasFile('media')) {
+            $path = $request->file('media')->store('media', 'public');
+            $data['media_path'] = $path;
+        }
+
+        $post = Post::create([
+            'user_id' => Auth::id(),
+            'category_id' => $data['category_id'],
+            'title' => $data['title'] ?? null,
+            'content' => $data['content'] ?? null,
+            'content_type' => $data['content_type'],
+            'excerpt' => $data['excerpt'] ?? null,
+            'status' => 'published',
+            'published_at' => now(),
+        ]);
+
         $subscriber_ids = \App\Models\Subscription::where('publisher_id', Auth::id())
             ->pluck('subscriber_id')
             ->toArray();
@@ -121,6 +139,11 @@ class PostController extends Controller
             'content_type' => 'required|in:text,image,audio,mixed',
             'excerpt' => 'nullable|string|max:500',
         ]);
+
+        if ($request->hasFile('media')) {
+            $path = $request->file('media')->store('media', 'public');
+            $data['media_path'] = $path;
+        }
 
         $post->update($data);
 
@@ -197,5 +220,20 @@ class PostController extends Controller
             ->paginate(10);
 
         return view('posts.my', compact('posts'));
+    }
+
+    public function favorites()
+    {
+        $likedPostIds = Reaction::where('user_id', Auth::id())
+            ->where('type', 'like')
+            ->pluck('post_id');
+
+        $posts = Post::with(['user', 'category'])
+            ->whereIn('id', $likedPostIds)
+            ->where('status', 'published')
+            ->latest('published_at')
+            ->paginate(10);
+
+        return view('posts.favorites', compact('posts'));
     }
 }

@@ -99,3 +99,34 @@ async def get_subscription_feed(user_id: int, page: int = 1, size: int = 10, db:
 
     items = [await enrich_post(p, db) for p in posts]
     return PostListSchema(items=items, total=total, page=page, size=size, pages=-(-total // size))
+
+@router.get("/api/users/{user_id}/favorites", response_model=PostListSchema)
+async def get_user_favorites(user_id: int, page: int = 1, size: int = 10, db: AsyncSession = Depends(get_db)):
+    liked_post_ids = (await db.execute(
+        select(Reaction.post_id).where(Reaction.user_id == user_id, Reaction.type == "like")
+    )).scalars().all()
+
+    q = post_query_with_relations().where(Post.status == "published", Post.id.in_(liked_post_ids))
+    total = await db.scalar(select(func.count()).select_from(q.subquery()))
+    posts = (await db.execute(
+        q.order_by(Post.published_at.desc()).offset((page - 1) * size).limit(size)
+    )).scalars().all()
+
+    items = [await enrich_post(p, db) for p in posts]
+    return PostListSchema(items=items, total=total, page=page, size=size, pages=-(-total // size))
+
+@router.get("/api/search/publishers", response_model=list[UserSchema])
+async def search_publishers(q: str, page: int = 1, size: int = 10, db: AsyncSession = Depends(get_db)):
+    publishers = (await db.execute(
+        select(User)
+        .join(Role)
+        .where(
+            Role.name.in_(["publisher", "admin"]),
+            User.is_active == True,
+            (User.name.ilike(f"%{q}%") | User.email.ilike(f"%{q}%"))
+        )
+        .offset((page - 1) * size)
+        .limit(size)
+    )).scalars().all()
+    
+    return publishers

@@ -36,6 +36,10 @@
         @if($post->excerpt)
             <p class="post-excerpt">{{ $post->excerpt }}</p>
         @endif
+        <div class="post-card-footer">
+            <span>👍 {{ $post->reactions->where('type','like')->count() }}</span>
+            <span>💬 {{ $post->comments->where('is_deleted', false)->count() }}</span>
+        </div>
     </div>
 @empty
     <div class="card">

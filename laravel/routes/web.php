@@ -60,4 +60,9 @@ Route::middleware('auth')->group(function () {
     });
 
     Route::get('/my/posts', [PostController::class, 'myPosts'])->name('posts.my');
+
+    Route::get('/favorites', [PostController::class, 'favorites'])->name('favorites');
+
+    Route::get('/choose-role', [AuthController::class, 'chooseRoleForm'])->name('role.choose');
+    Route::post('/choose-role', [AuthController::class, 'chooseRole']);
 });

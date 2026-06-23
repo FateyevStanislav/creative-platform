@@ -28,6 +28,13 @@
                 <label>Повторите пароль</label>
                 <input type="password" name="password_confirmation" class="form-control" required>
             </div>
+            <div class="form-group">
+                <label>Кем вы хотите быть?</label>
+                <select name="role" class="form-control" required>
+                    <option value="reader" {{ old('role') === 'reader' ? 'selected' : '' }}>Читатель (только просмотр и комментарии)</option>
+                    <option value="publisher" {{ old('role') === 'publisher' ? 'selected' : '' }}>Публикатор (могу создавать посты)</option>
+                </select>
+            </div>
             <button type="submit" class="btn btn-primary" style="width:100%">Зарегистрироваться</button>
         </form>
 

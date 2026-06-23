@@ -25,6 +25,7 @@ class PostSchema(BaseModel):
     category: CategorySchema
     likes: int = 0
     dislikes: int = 0
+    media_path: str | None = None
 
     model_config = {"from_attributes": True}
 
