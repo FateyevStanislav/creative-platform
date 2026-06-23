@@ -104,8 +104,11 @@ class PostController extends Controller
             'event' => 'post.created',
             'post_id' => $post->id,
             'author_id' => $post->user_id,
+            'author_name' => Auth::user()->name,
             'category_id' => $post->category_id,
+            'category_name' => $post->category->name ?? 'Категория',
             'title' => $post->title,
+            'excerpt' => $post->excerpt,
             'content_type' => $post->content_type,
             'published_at' => $post->published_at->toISOString(),
             'subscriber_ids' => $subscriber_ids,
@@ -154,9 +157,11 @@ class PostController extends Controller
         $post->update($data);
 
         Redis::publish('post.updated', json_encode([
+            'event' => 'post.updated',
             'post_id' => $post->id,
             'author_id' => $post->user_id,
             'title' => $post->title,
+            'subscriber_ids' => [],
         ]));
 
         return redirect()->route('posts.show', $post->id);
@@ -173,7 +178,9 @@ class PostController extends Controller
         $post->update(['status' => 'deleted']);
 
         Redis::publish('post.deleted', json_encode([
+            'event' => 'post.deleted',
             'post_id' => $post->id,
+            'subscriber_ids' => [],
         ]));
 
         return redirect()->route('home');

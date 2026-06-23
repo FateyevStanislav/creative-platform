@@ -3,14 +3,15 @@ import os
 from contextlib import asynccontextmanager
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect, Query
 from redis.asyncio import Redis
+from sqlalchemy import select
+
 from .api.posts import router as posts_router
 from .websocket.manager import manager
 from .websocket.redis_listener import redis_listener
 from .db.database import get_db
-from sqlalchemy import select
+from .db.models import User
 
 REDIS_HOST = os.getenv("REDIS_HOST", "redis")
-
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
@@ -20,15 +21,12 @@ async def lifespan(app: FastAPI):
     task.cancel()
     await redis.aclose()
 
-
 app = FastAPI(lifespan=lifespan)
 app.include_router(posts_router)
-
 
 @app.get("/api/health")
 async def health():
     return {"status": "ok"}
-
 
 @app.websocket("/ws")
 async def websocket_endpoint(websocket: WebSocket, user_id: int = Query(...)):

@@ -3,9 +3,9 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
 from ..db.database import get_db
-from ..db.models import Post, Category, Reaction, Subscription, User
+from ..db.models import Post, Category, Reaction, Subscription, User, Role
 from ..schemas.posts import PostSchema, PostListSchema
-from ..schemas.common import CategorySchema
+from ..schemas.common import CategorySchema, UserSchema
 
 router = APIRouter()
 
@@ -100,6 +100,22 @@ async def get_subscription_feed(user_id: int, page: int = 1, size: int = 10, db:
     items = [await enrich_post(p, db) for p in posts]
     return PostListSchema(items=items, total=total, page=page, size=size, pages=-(-total // size))
 
+
+@router.get("/api/posts/{post_id}/comments", response_model=list)
+async def get_post_comments(post_id: int, page: int = 1, size: int = 10, db: AsyncSession = Depends(get_db)):
+    from ..db.models import Comment
+    comments = (await db.execute(
+        select(Comment)
+        .where(Comment.post_id == post_id, Comment.is_deleted == False)
+        .options(selectinload(Comment.user).selectinload(User.role))
+        .order_by(Comment.created_at.asc())
+        .offset((page - 1) * size)
+        .limit(size)
+    )).scalars().all()
+    
+    return comments
+
+
 @router.get("/api/users/{user_id}/favorites", response_model=PostListSchema)
 async def get_user_favorites(user_id: int, page: int = 1, size: int = 10, db: AsyncSession = Depends(get_db)):
     liked_post_ids = (await db.execute(
@@ -114,6 +130,7 @@ async def get_user_favorites(user_id: int, page: int = 1, size: int = 10, db: As
 
     items = [await enrich_post(p, db) for p in posts]
     return PostListSchema(items=items, total=total, page=page, size=size, pages=-(-total // size))
+
 
 @router.get("/api/search/publishers", response_model=list[UserSchema])
 async def search_publishers(q: str, page: int = 1, size: int = 10, db: AsyncSession = Depends(get_db)):
