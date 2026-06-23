@@ -18,10 +18,11 @@
 
     @if($post->media_path)
         @if($post->content_type === 'image')
-            <img src="{{ asset('storage/' . $post->media_path) }}" alt="{{ $post->title }}" style="max-width: 100%; margin-bottom: 1.5rem;">
+            <img src="{{ asset('storage/' . $post->media_path) }}" alt="{{ $post->title }}" style="max-width: 100%; margin-bottom: 1.5rem; border-radius: 8px;">
         @elseif($post->content_type === 'audio')
             <audio controls style="width: 100%; margin-bottom: 1.5rem;">
                 <source src="{{ asset('storage/' . $post->media_path) }}">
+                Ваш браузер не поддерживает аудио.
             </audio>
         @endif
     @endif
@@ -56,7 +57,8 @@
             @if(Auth::id() === $post->user_id || Auth::user()->isAdmin())
                 <a href="/posts/{{ $post->id }}/edit" class="btn btn-sm btn-secondary">Редактировать</a>
                 <form method="POST" action="/posts/{{ $post->id }}">
-                    @csrf @method('DELETE')
+                    @csrf
+                    @method('DELETE')
                     <button type="submit" class="btn btn-sm btn-danger"
                         onclick="return confirm('Удалить пост?')">Удалить</button>
                 </form>
@@ -92,9 +94,10 @@
                         @if(Auth::id() === $comment->user_id || Auth::user()->isAdmin())
                             · <a href="/comments/{{ $comment->id }}/edit">Редактировать</a>
                             · <form method="POST" action="/comments/{{ $comment->id }}" style="display:inline">
-                                @csrf @method('DELETE')
+                                @csrf
+                                @method('DELETE')
                                 <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
-                              </form>
+                            </form>
                         @endif
                     @endauth
                 </div>
@@ -123,7 +126,8 @@
                                 @if(Auth::id() === $reply->user_id || Auth::user()->isAdmin())
                                     · <a href="/comments/{{ $reply->id }}/edit">Редактировать</a>
                                     · <form method="POST" action="/comments/{{ $reply->id }}" style="display:inline">
-                                        @csrf @method('DELETE')
+                                        @csrf
+                                        @method('DELETE')
                                         <button type="submit" class="btn btn-sm btn-danger">Удалить</button>
                                     </form>
                                 @endif

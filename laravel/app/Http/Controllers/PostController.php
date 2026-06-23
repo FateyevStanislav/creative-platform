@@ -76,11 +76,12 @@ class PostController extends Controller
             'category_id' => 'required|exists:categories,id',
             'content_type' => 'required|in:text,image,audio,mixed',
             'excerpt' => 'nullable|string|max:500',
+            'media' => 'nullable|file|max:10240', 
         ]);
 
+        $mediaPath = null;
         if ($request->hasFile('media')) {
-            $path = $request->file('media')->store('media', 'public');
-            $data['media_path'] = $path;
+            $mediaPath = $request->file('media')->store('media', 'public');
         }
 
         $post = Post::create([
@@ -90,6 +91,7 @@ class PostController extends Controller
             'content' => $data['content'] ?? null,
             'content_type' => $data['content_type'],
             'excerpt' => $data['excerpt'] ?? null,
+            'media_path' => $mediaPath, 
             'status' => 'published',
             'published_at' => now(),
         ]);
@@ -138,11 +140,15 @@ class PostController extends Controller
             'category_id' => 'required|exists:categories,id',
             'content_type' => 'required|in:text,image,audio,mixed',
             'excerpt' => 'nullable|string|max:500',
+            'media' => 'nullable|file|max:10240', 
         ]);
 
         if ($request->hasFile('media')) {
-            $path = $request->file('media')->store('media', 'public');
-            $data['media_path'] = $path;
+            if ($post->media_path) {
+                \Storage::disk('public')->delete($post->media_path);
+            }
+            
+            $data['media_path'] = $request->file('media')->store('media', 'public');
         }
 
         $post->update($data);

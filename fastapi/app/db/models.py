@@ -43,7 +43,7 @@ class Post(Base):
     reactions = relationship("Reaction", back_populates="post")
     comments = relationship("Comment", back_populates="post")
     media_path = Column(String(255), nullable=True)
-    updated_at = Column(DateTime, nullable=True)    
+    updated_at = Column(DateTime, nullable=True)
 
 class Comment(Base):
     __tablename__ = "comments"

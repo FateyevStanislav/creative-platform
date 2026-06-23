@@ -14,7 +14,6 @@ class CategorySeeder extends Seeder
             ['name' => 'Иллюстрации', 'slug' => 'illustrations', 'description' => 'Рисунки и цифровое искусство'],
             ['name' => 'Фотография', 'slug' => 'photography', 'description' => 'Фотоработы авторов'],
             ['name' => 'Текст', 'slug' => 'text', 'description' => 'Статьи, рассказы, стихи'],
-            ['name' => 'Видео', 'slug' => 'video', 'description' => 'Видеоработы и анимация'],
         ];
 
         foreach ($categories as $cat) {
